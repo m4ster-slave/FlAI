@@ -1,0 +1,7 @@
+./libs/simulation/target
+./libs/genetic-algorithm/target
+./libs/neural-network/target
+./libs/simulation-wasm/target
+./www/node_modules
+./www/dist
+./target
