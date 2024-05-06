@@ -39,7 +39,7 @@ CanvasRenderingContext2D.prototype.drawTriangle =
             y + Math.cos(rotation) * size * 1.5,
         );
 
-        this.fillStyle = 'rgb(255, 255, 255)'; // A nice white color
+        this.fillStyle = 'rgb(255, 255, 255)';
         this.fill();
         this.stroke();
     };

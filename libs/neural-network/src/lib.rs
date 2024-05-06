@@ -1,5 +1,11 @@
-use rand::{Rng, RngCore};
+mod layer;
+mod neuron;
+
+use rand::{RngCore, Rng};
 use std::iter::once;
+use self::layer::*; 
+
+
 
 #[derive(Debug)]
 pub struct LayerTopology {
@@ -12,6 +18,10 @@ pub struct Network {
 }
 
 impl Network {
+    pub(crate) fn new(layers: Vec<Layer>) -> Self {
+        Self { layers }
+    }
+
     pub fn from_weights(layers: &[LayerTopology], weights: impl IntoIterator<Item = f32>) -> Self {
         assert!(layers.len() > 1);
 
@@ -26,7 +36,7 @@ impl Network {
             panic!("got too many weights");
         }
 
-        Self { layers }
+        Self::new(layers)
     }
 
     pub fn weights(&self) -> impl Iterator<Item = f32> + '_ {
@@ -63,87 +73,11 @@ impl Network {
     }
 }
 
-#[derive(Debug)]
-struct Layer {
-    neurons: Vec<Neuron>,
-}
-
-impl Layer {
-    fn from_weights(
-        input_size: usize,
-        output_size: usize,
-        weights: &mut dyn Iterator<Item = f32>,
-    ) -> Self {
-        let neurons = (0..output_size)
-            .map(|_| Neuron::from_weights(input_size, weights))
-            .collect();
-
-        Self { neurons }
-    }
-
-    fn random(rng: &mut dyn RngCore, input_size: usize, output_size: usize) -> Self {
-        let mut neurons = Vec::new();
-
-        for _ in 0..output_size {
-            neurons.push(Neuron::random(rng, input_size));
-        }
-
-        Self { neurons }
-    }
-
-    fn propagate(&self, inputs: Vec<f32>) -> Vec<f32> {
-        let mut outputs = Vec::new();
-
-        for neuron in &self.neurons {
-            let output = neuron.propagate(&inputs);
-            outputs.push(output);
-        }
-
-        outputs
-    }
-}
-
-#[derive(Debug)]
-struct Neuron {
-    bias: f32,
-    weights: Vec<f32>,
-}
-
-impl Neuron {
-    fn from_weights(input_size: usize, weights: &mut dyn Iterator<Item = f32>) -> Self {
-        let bias = weights.next().expect("got not enough weights");
-
-        let weights = (0..input_size)
-            .map(|_| weights.next().expect("got not enough weights"))
-            .collect();
-
-        Self { bias, weights }
-    }
-    fn random(rng: &mut dyn RngCore, input_size: usize) -> Self {
-        let bias = rng.gen_range(-1.0..=1.0);
-
-        let weights = (0..input_size).map(|_| rng.gen_range(0.0..=1.0)).collect();
-
-        Self { bias, weights }
-    }
-
-    fn propagate(&self, inputs: &[f32]) -> f32 {
-        assert_eq!(inputs.len(), self.weights.len());
-
-        let mut output = 0.0;
-
-        for (&input, &weight) in inputs.iter().zip(&self.weights) {
-            output += input * weight;
-        }
-
-        output += self.bias;
-        output.max(0.0)
-    }
-}
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::neuron::Neuron;
     use approx::assert_relative_eq;
     use rand::SeedableRng;
     use rand_chacha::ChaCha8Rng;
