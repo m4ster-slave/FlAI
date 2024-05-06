@@ -70,6 +70,7 @@ function redraw() {
         );
     }
 
+    // console.log(world.animals[0].rotation)
     for (const animal of world.animals) {
         ctxt.drawTriangle(
             animal.x * viewportWidth,

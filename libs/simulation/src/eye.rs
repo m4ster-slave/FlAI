@@ -5,7 +5,7 @@ const FOV_RANGE: f32 = 0.25;
 const FOV_ANGLE: f32 = PI + FRAC_PI_4;
 const CELLS: usize = 9;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Eye {
     fov_range: f32,
     fov_angle: f32,
@@ -28,7 +28,7 @@ impl Eye {
         self.cells
     }
 
-    pub fn process_vision(
+    pub(crate) fn process_vision(
         &self,
         position: na::Point2<f32>,
         rotation: na::Rotation2<f32>,
@@ -38,18 +38,13 @@ impl Eye {
 
         for food in foods {
             let vec = food.position - position;
-
             let dist = vec.norm();
 
-            if dist >= self.fov_range {
+            if dist > self.fov_range {
                 continue;
             }
 
-            let angle = na::Rotation2::rotation_between(
-                &na::Vector2::y(),
-                &vec,
-            ).angle();
-
+            let angle = na::Rotation2::rotation_between(&na::Vector2::y(), &vec).angle();
             let angle = angle - rotation.angle();
             let angle = na::wrap(angle, -PI, PI);
 
@@ -58,16 +53,10 @@ impl Eye {
             }
 
             let angle = angle + self.fov_angle / 2.0;
-
-
-            let cell = angle / self.fov_angle;
-            let cell = cell * (self.cells as f32);
+            let cell = angle / self.fov_angle * (self.cells as f32);
             let cell = (cell as usize).min(cells.len() - 1);
 
-            let energy = (self.fov_range - dist) / self.fov_range;
-            cells[cell] += energy
-
-
+            cells[cell] += (self.fov_range - dist) / self.fov_range;
         }
 
         cells
