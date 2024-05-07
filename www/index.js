@@ -1,6 +1,25 @@
 import * as sim from "lib-simulation-wasm";
 
-const simulation = new sim.Simulation();
+var simulation;
+function restart() {
+  
+  var sliderValueAnimal = document.getElementById("num-animals").value;
+  var sliderValueFoods = document.getElementById("num-foods").value;
+  var sliderValueFOVRange = document.getElementById("fov-range").value;
+  var sliderValueFOVAngle = document.getElementById("fov-angle").value;
+  var sliderValueCells = document.getElementById("cells").value;
+
+
+  
+  simulation = new sim.Simulation(sliderValueAnimal, sliderValueFoods, sliderValueFOVRange, sliderValueFOVAngle, sliderValueCells);
+}
+
+restart();
+
+
+
+
+
 const viewport = document.getElementById('viewport');
 const viewportWidth = viewport.width;
 const viewportHeight = viewport.height;
@@ -56,9 +75,38 @@ CanvasRenderingContext2D.prototype.drawCircle =
 
 
 function redraw() {
-    ctxt.clearRect(0, 0, viewportWidth, viewportHeight);
+    ctxt.clearRect(0, 0, viewportWidth + 10, viewportHeight + 10); // +10 bc of weird bug where it wouldn clear the edges 
 
-    simulation.step();
+    
+    var sliderValueSpeedMin = document.getElementById("speed-min").value;
+    var sliderValueSpeedMax = document.getElementById("speed-max").value;
+    var sliderValueSpeedAccel = document.getElementById("speed-accel").value;
+    var sliderValueRotationAccel = document.getElementById("rotation-accel").value;
+    var sliderValueGenerationLength = document.getElementById("generation-length").value;
+    
+    var sliderValueFOVRange = document.getElementById("fov-range").value;
+    var sliderValueFOVAngle = document.getElementById("fov-angle").value;
+    var sliderValueCells = document.getElementById("cells").value;
+
+    if (sliderValueSpeedMin > sliderValueSpeedMax) {
+      sliderValueSpeedMin = sliderValueSpeedMax; 
+      document.getElementById("speed-min").value = sliderValueSpeedMax;
+    }
+
+    simulation.step(
+      sliderValueSpeedMin,
+      sliderValueSpeedMax,
+      sliderValueSpeedAccel,
+      sliderValueRotationAccel,
+      sliderValueGenerationLength,
+      sliderValueFOVRange,
+      sliderValueFOVAngle,
+      sliderValueCells,
+    );
+
+    // console.log(simulation.get_generation())
+    var spanGeneration = document.getElementById("gen-num");
+    spanGeneration.textContent = simulation.get_generation();
 
     const world = simulation.world();
 

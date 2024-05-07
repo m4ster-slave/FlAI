@@ -31,7 +31,7 @@ impl AnimalIndividual {
         
     }
 
-    pub fn into_animal(self, rng: &mut dyn RngCore) -> Animal {
-        Animal::from_chromosome(self.chromosome, rng)
+    pub fn into_animal(self, rng: &mut dyn RngCore, fov_range: f32, fov_angle: f32, cells: usize) -> Animal {
+        Animal::from_chromosome(self.chromosome, rng, fov_range, fov_angle, cells)
     }
 }

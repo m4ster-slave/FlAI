@@ -2,15 +2,79 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="style.css">
     <title>FlAI</title>
   </head>
-  <style>
-    body {
-      background: #1f2639; 
-    }
-  </style>
   <body>
-    <canvas id="viewport" width="800" height="800"></canvas>
+    <div id="wrapper">
+      <div id="left-column">
+        <div id="canvas-container">
+          <canvas id="viewport" width="800" height="800"></canvas>
+        </div>
+      </div>
+
+      <div id="right-column">
+        <div id="text-wrapper">
+          <h1>FlAI</h1> 
+          <p>Simulation for a neural network with a genetic-algorithm for fine tuning the network</p>
+          <div id="horizontal-line"></div>
+          <div class="slider-container">
+            <label for="slider">Minimum speed:</label>
+            <input type="range" min="0.0001" max="0.005" step="0.0001" value="0.001" class="slider" id="speed-min">
+          </div>
+          <div class="slider-container">
+            <label for="slider">Maximum speed:</label>
+            <input type="range" min="0.0001" max="0.02" step="0.0001" value="0.005" class="slider" id="speed-max">
+          </div>
+          <div class="slider-container">
+            <label for="slider">Accelaration speed:</label>
+            <input type="range" min="0.001" max="1.0" step="0.001" value="0.2" class="slider" id="speed-accel">
+          </div>
+          <div class="slider-container">
+            <label for="slider">Rotation accelaration:</label>
+            <input type="range" min="0.1" max="5" step="0.01" value="1.5" class="slider" id="rotation-accel">
+          </div>
+          <div class="slider-container">
+            <label for="slider">Generation length:</label>
+            <input type="range" min="100" max="10000" value="2500" class="slider" id="generation-length">
+          </div>
+
+          <div id="horizontal-line" class="middle-line"></div>
+
+
+          <div class="slider-container">
+            <label for="slider">FOV range:</label>
+            <input type="range" min="0.01" max="1.0" step="0.01" value="0.25" class="slider" id="fov-range">
+          </div>
+          <div class="slider-container">
+            <label for="slider">FOV angle:</label>
+            <input type="range" min="0.01" max="6.3" step="0.01" value="3.9" class="slider" id="fov-angle">
+          </div>
+          <div class="slider-container">
+            <label for="slider">Eye cells:</label>
+            <input type="range" min="1" max="30" step="1" value="9" class="slider" id="cells">
+          </div>
+          <div class="slider-container">
+            <label for="slider">Food:</label>
+            <input type="range" min="1" max="100" step="1" value="40" class="slider" id="num-foods">
+          </div>
+          <div class="slider-container">
+            <label for="slider">Animals:</label>
+            <input type="range" min="1" max="100" step="1" value="60" class="slider" id="num-animals">
+          </div>
+        </div>
+        <div id="text-wrapper">
+          <div id="horizontal-line"></div>
+          <div class="information">
+              <p>Generation <span id="gen-num">1</span></p> 
+          </div>  
+          <div id="horizontal-line"></div>
+        </div>
+        
+
+      </div>
+
+    </div>
     <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
     <script src="./bootstrap.js"></script>
   </body>

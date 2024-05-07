@@ -7,14 +7,17 @@ pub struct World {
 }
 
 impl World {
-    pub fn random(rng: &mut dyn RngCore) -> Self {
-        let animals = (0..40)
-            .map(|_| Animal::random(rng))
-            .collect();
+    pub fn random(
+        rng: &mut dyn RngCore,
+        animals: i32,
+        foods: i32,
+        fov_range: f32,
+        fov_angle: f32,
+        cells: usize,
+    ) -> Self {
+        let animals = (0..animals).map(|_| Animal::random(rng, fov_range, fov_angle, cells)).collect();
 
-        let foods = (0..60)
-            .map(|_| Food::random(rng))
-            .collect();
+        let foods = (0..foods).map(|_| Food::random(rng)).collect();
 
         Self { animals, foods }
     }

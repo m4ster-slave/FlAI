@@ -1,6 +1,6 @@
 use lib_simulation as sim;
-use wasm_bindgen::prelude::*;
 use rand::prelude::*;
+use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub struct Simulation {
@@ -13,7 +13,6 @@ pub struct Simulation {
 pub struct World {
     #[wasm_bindgen(getter_with_clone)]
     pub animals: Vec<Animal>,
-
 
     #[wasm_bindgen(getter_with_clone)]
     pub foods: Vec<Food>,
@@ -49,9 +48,9 @@ impl From<&sim::Animal> for Animal {
 #[wasm_bindgen]
 impl Simulation {
     #[wasm_bindgen(constructor)]
-    pub fn new() -> Self {
+    pub fn new(animals: i32, foods: i32, fov_range: f32, fov_angle: f32, cells: usize) -> Self {
         let mut rng = thread_rng();
-        let sim = sim::Simulation::random(&mut rng);
+        let sim = sim::Simulation::random(&mut rng, animals, foods, fov_range, fov_angle, cells);
 
         Self { rng, sim }
     }
@@ -60,8 +59,32 @@ impl Simulation {
         World::from(self.sim.world())
     }
 
-    pub fn step(&mut self) {
-        self.sim.step(&mut self.rng);
+    pub fn step(
+        &mut self,
+        speed_min: f32,
+        speed_max: f32,
+        speed_accel: f32,
+        rotation_accel: f32,
+        generation_length: i32,
+        fov_range: f32,
+        fov_angle: f32,
+        cells: usize,
+    ) {
+        self.sim.step(
+            &mut self.rng,
+            speed_min,
+            speed_max,
+            speed_accel,
+            rotation_accel,
+            generation_length,
+            fov_range,
+            fov_angle,
+            cells,
+        );
+    }
+
+    pub fn get_generation(&mut self) -> i32 {
+        self.sim.generation
     }
 }
 

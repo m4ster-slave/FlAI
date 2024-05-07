@@ -1,36 +1,35 @@
 mod animal;
 mod animal_individual;
+mod brain;
+mod eye;
 mod food;
 mod world;
-mod eye;
-mod brain;
 
-use lib_neural_network as nn;
-use lib_genetic_algorithm as ga;
-use nalgebra as na;
-pub use self::{animal::*, brain::*, eye::*, food::*, world::*};
-use rand::{Rng, RngCore};
-use std::{f32::consts::FRAC_PI_2, vec};
 use self::animal_individual::*;
-
-
-const SPEED_MIN: f32 = 0.001;
-const SPEED_MAX: f32 = 0.005;
-const SPEED_ACCEL: f32 = 0.2;
-const ROTATION_ACCEL: f32 = FRAC_PI_2;
-
-const GENERATION_LENGTH: usize = 2500;
-
+pub use self::{animal::*, brain::*, eye::*, food::*, world::*};
+use lib_genetic_algorithm as ga;
+use lib_neural_network as nn;
+use nalgebra as na;
+use rand::{Rng, RngCore};
+use std::vec;
 
 pub struct Simulation {
     world: World,
     ga: ga::GeneticAlgorithm<ga::RouletteWheelSelection>,
-    age: usize,
+    age: i32,
+    pub generation: i32,
 }
 
 impl Simulation {
-    pub fn random(rng: &mut dyn RngCore) -> Self {
-        let world = World::random(rng);
+    pub fn random(
+        rng: &mut dyn RngCore,
+        animals: i32,
+        foods: i32,
+        fov_range: f32,
+        fov_angle: f32,
+        cells: usize,
+    ) -> Self {
+        let world = World::random(rng, animals, foods, fov_range, fov_angle, cells);
 
         let ga = ga::GeneticAlgorithm::new(
             ga::RouletteWheelSelection,
@@ -38,30 +37,43 @@ impl Simulation {
             ga::GaussianMutation::new(0.01, 0.3),
         );
 
-        Self { world, ga, age: 0 }
+        Self {
+            world,
+            ga,
+            age: 0,
+            generation: 0,
+        }
     }
 
     pub fn world(&self) -> &World {
-        &self.world 
+        &self.world
     }
 
-    // pub fn step(&mut self, rng: &mut dyn RngCore) {
-    //     
-    // }
-
-    pub fn step(&mut self, rng: &mut dyn RngCore) {
+    pub fn step(
+        &mut self,
+        rng: &mut dyn RngCore,
+        speed_min: f32,
+        speed_max: f32,
+        speed_accel: f32,
+        rotation_accel: f32,
+        generation_length: i32,
+        fov_range: f32,
+        fov_angle: f32,
+        cells: usize,
+    ) {
         self.process_collisions(rng);
-        self.process_brains();
+        self.process_brains(speed_min, speed_max, speed_accel, rotation_accel);
         self.process_movements();
 
         self.age += 1;
 
-        if self.age > GENERATION_LENGTH {
-            self.evolve(rng);
+        if self.age > generation_length {
+            self.generation += 1;
+            self.evolve(rng, fov_range, fov_angle, cells);
         }
     }
 
-    fn evolve(&mut self, rng: &mut dyn RngCore) {
+    fn evolve(&mut self, rng: &mut dyn RngCore, fov_range: f32, fov_angle: f32, cells: usize) {
         self.age = 0;
 
         // Step 1: Prepare birdies to be sent into the genetic algorithm
@@ -77,8 +89,8 @@ impl Simulation {
 
         self.world.animals = evolved_population
             .into_iter()
-            .map(|individual| individual.into_animal(rng))
-            .collect();       
+            .map(|individual| individual.into_animal(rng, fov_range, fov_angle, cells))
+            .collect();
 
         for food in &mut self.world.foods {
             food.position = rng.gen();
@@ -88,14 +100,14 @@ impl Simulation {
     fn process_collisions(&mut self, rng: &mut dyn RngCore) {
         for animal in &mut self.world.animals {
             for food in &mut self.world.foods {
-                let distance = na::distance(&animal.position, &food.position); 
+                let distance = na::distance(&animal.position, &food.position);
 
                 if distance <= 0.01 {
                     animal.satiation += 1;
                     food.position = rng.gen();
                 }
             }
-        } 
+        }
     }
 
     fn process_movements(&mut self) {
@@ -107,25 +119,25 @@ impl Simulation {
         }
     }
 
-    fn process_brains(&mut self) {
+    fn process_brains(
+        &mut self,
+        speed_min: f32,
+        speed_max: f32,
+        speed_accel: f32,
+        rotation_accel: f32,
+    ) {
         for animal in &mut self.world.animals {
-            let vision = animal.eye.process_vision(
-                animal.position,
-                animal.rotation,
-                &self.world.foods,
-            );
-
-            // let mut rng = rand::thread_rng();
-            // let y: f32 = rng.gen_range(-0.1..0.1); 
-            // let x: f32 = rng.gen_range(-0.1..0.1); 
-            // let response: Vec<f32> = vec![y,x]; 
+            let vision =
+                animal
+                    .eye
+                    .process_vision(animal.position, animal.rotation, &self.world.foods);
 
             let response = animal.brain.nn.propagate(vision);
             // ---
             // | Limits number to given range.
             // -------------------- v---v
-            let speed = response[0].clamp(-SPEED_ACCEL, SPEED_ACCEL);
-            let rotation = response[1].clamp(-ROTATION_ACCEL, ROTATION_ACCEL);
+            let speed = response[0].clamp(-speed_accel, speed_accel);
+            let rotation = response[1].clamp(-rotation_accel, rotation_accel);
 
             // Our speed & rotation here are *relative* - that is: when
             // they are equal to zero, what the brain says is "keep
@@ -139,7 +151,7 @@ impl Simulation {
             //   neural network, which would make the evolution process
             //   waaay longer, if even possible.
 
-            animal.speed = (animal.speed + speed).clamp(SPEED_MIN, SPEED_MAX);
+            animal.speed = (animal.speed + speed).clamp(speed_min, speed_max);
             animal.rotation = na::Rotation2::new(animal.rotation.angle() + rotation);
 
             // (btw, there is no need for ROTATION_MIN or ROTATION_MAX,
@@ -149,4 +161,3 @@ impl Simulation {
         }
     }
 }
-
