@@ -9,6 +9,7 @@ function restart() {
   var sliderValueFOVAngle = document.getElementById("fov-angle").value;
   var sliderValueCells = document.getElementById("cells").value;
 
+  console.log("Button pressed");
 
   
   simulation = new sim.Simulation(sliderValueAnimal, sliderValueFoods, sliderValueFOVRange, sliderValueFOVAngle, sliderValueCells);
@@ -16,8 +17,7 @@ function restart() {
 
 restart();
 
-
-
+const button = document.getElementById("custom-button");
 
 
 const viewport = document.getElementById('viewport');
@@ -75,7 +75,7 @@ CanvasRenderingContext2D.prototype.drawCircle =
 
 
 function redraw() {
-    ctxt.clearRect(0, 0, viewportWidth + 10, viewportHeight + 10); // +10 bc of weird bug where it wouldn clear the edges 
+    ctxt.clearRect(0, 0, viewportWidth + 10, viewportHeight + 10); // +10 bc of weird bug where it wouldnt clear the edges 
 
     
     var sliderValueSpeedMin = document.getElementById("speed-min").value;
@@ -89,8 +89,8 @@ function redraw() {
     var sliderValueCells = document.getElementById("cells").value;
 
     if (sliderValueSpeedMin > sliderValueSpeedMax) {
-      sliderValueSpeedMin = sliderValueSpeedMax; 
-      document.getElementById("speed-min").value = sliderValueSpeedMax;
+      sliderValueSpeedMin = sliderValueSpeedMax - 0.0005; 
+      document.getElementById("speed-min").value = sliderValueSpeedMax - 0.0005;
     }
 
     simulation.step(
@@ -104,7 +104,6 @@ function redraw() {
       sliderValueCells,
     );
 
-    // console.log(simulation.get_generation())
     var spanGeneration = document.getElementById("gen-num");
     spanGeneration.textContent = simulation.get_generation();
 
@@ -118,7 +117,6 @@ function redraw() {
         );
     }
 
-    // console.log(world.animals[0].rotation)
     for (const animal of world.animals) {
         ctxt.drawTriangle(
             animal.x * viewportWidth,
@@ -127,6 +125,9 @@ function redraw() {
             animal.rotation,
         );
     }
+
+
+    button.addEventListener("click", restart);
 
     // requestAnimationFrame() schedules code only for the next frame.
     //
