@@ -1,23 +1,27 @@
-# Use an official Node.js runtime as a parent image
-FROM node:16
+FROM rust:latest  AS wasm-builder
+# Install rustup
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+# Set PATH for cargo and rustup
+ENV PATH="/root/.cargo/bin:${PATH}"
+# Install necessary tools for building wasm
+RUN rustup target add wasm32-unknown-unknown
+RUN curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
-# Set the working directory
 WORKDIR /flai_rs
+COPY libs/ ./libs/
 
-# Copy the rest of the application code to the working directory
-COPY . .
+## build the simulation
+RUN cd libs/simulation-wasm/ && wasm-pack build
 
-# Copy package.json and package-lock.json to the working directory
-#COPY ./www/package*.json ./www/
 
+FROM node:16 AS node-builder
+WORKDIR /flai_rs
+COPY www/ ./www/
 WORKDIR /flai_rs/www
-
-# Install dependencies
 RUN npm install
 
-# Expose the port your app runs on
+# Expose the port 
 EXPOSE 42069
-
-# Define the command to run your app
+# Define the command to run the app
 CMD ["npm", "run", "start", "--", "--host", "0.0.0.0", "--port", "42069"]
 
