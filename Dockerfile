@@ -2,10 +2,10 @@
 FROM node:16
 
 # Set the working directory
-WORKDIR ./www/
+WORKDIR /flai_rs
 
 # Copy package.json and package-lock.json to the working directory
-COPY package*.json ./
+COPY www/package*.json ./
 
 # Install dependencies
 RUN npm install
