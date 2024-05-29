@@ -4,17 +4,16 @@ FROM node:16
 # Set the working directory
 WORKDIR /flai_rs
 
-# Copy package.json and package-lock.json to the working directory
-COPY www/package*.json ./
-
-# Install dependencies
-RUN npm install
-
 # Copy the rest of the application code to the working directory
 COPY . .
 
-# Set environment variable
-ENV NODE_OPTIONS=--openssl-legacy-provider
+# Copy package.json and package-lock.json to the working directory
+#COPY ./www/package*.json ./www/
+
+WORKDIR /flai_rs/www
+
+# Install dependencies
+RUN npm install
 
 # Expose the port your app runs on
 EXPOSE 42069
