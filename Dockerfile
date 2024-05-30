@@ -8,20 +8,24 @@ RUN rustup target add wasm32-unknown-unknown
 RUN curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
 WORKDIR /flai_rs
-COPY libs/ ./libs/
 
 ## build the simulation
+#COPY libs/ ./libs/
+COPY . .
 RUN cd libs/simulation-wasm/ && wasm-pack build
+RUN ls -l libs/simulation-wasm/pkg
 
 
 FROM node:16 AS node-builder
 WORKDIR /flai_rs
-COPY www/ ./www/
+COPY --from=wasm-builder /flai_rs/ ./
+COPY --from=wasm-builder /flai_rs/libs/simulation-wasm/pkg ./libs/simulation-wasm/pkg
+RUN ls -l libs/simulation-wasm/ 
 WORKDIR /flai_rs/www
 RUN npm install
 
 # Expose the port 
 EXPOSE 42069
+
 # Define the command to run the app
 CMD ["npm", "run", "start", "--", "--host", "0.0.0.0", "--port", "42069"]
-
