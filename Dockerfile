@@ -20,7 +20,10 @@ FROM node:16 AS node-builder
 WORKDIR /flai_rs
 COPY --from=wasm-builder /flai_rs/ ./
 COPY --from=wasm-builder /flai_rs/libs/simulation-wasm/pkg ./libs/simulation-wasm/pkg
-RUN ls -l libs/simulation-wasm/ 
 WORKDIR /flai_rs/www
 RUN npm install
 
+# Expose the port 
+EXPOSE 42069
+# Define the command to run the app
+CMD ["npm", "run", "start", "--", "--host", "0.0.0.0", "--port", "42069"]
